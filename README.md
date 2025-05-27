@@ -11,7 +11,7 @@ This project is adding minor quality of life improvements to the Home Assistant 
 
 	or
 	
-- Just copy the `hass-assist-ui-tweaks.js` file to `/config/www/hass-assist-ui-tweaks/hass-assist-ui-tweaks.js`
+- Just copy the `hass-ui-tweaks.js` file to `/config/www/hass-assist-ui-tweaks/hass-ui-tweaks.js`
 
 - Go to Settings - Dashboards
 - Click the 3 dots at the top right and select Resources
