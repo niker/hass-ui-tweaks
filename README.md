@@ -7,10 +7,14 @@ This project is adding minor quality of life improvements to the UI. Modifies th
 - Prevent dialog window from closing when clicking outside its bounds
 - Prefix "AI" to the page title while chat is open
 
+![Snímek obrazovky 2025-05-27 234334](https://github.com/user-attachments/assets/8e66ba58-32b5-49c4-b032-a8b8fd7d8ac7)
+
 ## Automation and script editor
 
 - Colorize panels in editor
 - Change colors for each indentation level
+
+![Snímek obrazovky 2025-05-27 234523](https://github.com/user-attachments/assets/35b18873-8273-49b0-9574-05b2a5301fa0)
 
 
 ## How to install:
