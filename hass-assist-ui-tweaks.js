@@ -98,7 +98,7 @@
     const x = c * (1 - Math.abs((h / 60) % 2 - 1));
     const m = l - c / 2;
 
-    let r = 0, g = 0, b = 0;
+    let r, g, b;
 
     if (h < 60)
     {
@@ -179,6 +179,7 @@
   }
 
   let editorUpdatesRunning = false;
+
   function colorEditor(type)
   {
     const root = document.querySelector('home-assistant')?.
@@ -222,7 +223,7 @@
       });
     });
   }
-  
+
   function applyAssistTweaks()
   {
     return () => {
@@ -247,7 +248,7 @@
       }
     };
   }
-  
+
   function applyEditorTweaks()
   {
     return () => {
@@ -269,14 +270,14 @@
       }
     };
   }
-  
+
   // periodically watch for assist dialog being shown or closed
   setInterval(applyAssistTweaks(), 500);
-  
+
   // if we are on the right page, try to apply editor tweaks faster until it works;
   // then the update slows down to every 3 seconds to colorize newly added nodes
   setTimeout(applyEditorTweaks(), 500);
-  
+
 })();
 
 
