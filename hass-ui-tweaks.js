@@ -13,6 +13,9 @@
   // AI assist dialog can only be closed with X
   const assistCloseWithX = true;
 
+  // AI assist dialog will protect its history from accidental clearing
+  const assistProtectKeys = true;
+
   // enable coloring of automation editor
   const enableAutomationColoring = true;
 
@@ -82,6 +85,32 @@
         });
       }
     }
+  }
+
+  function assistDialogInterceptShortcuts()
+  {
+    if (!assistProtectKeys)
+    {
+      return;
+    }
+    
+    // Intercept action keys globally, those keys would otherwise put 
+    // chat history at risk when text field is not selected.
+    //
+    // Would reopen the dialog and clear history:
+    // A - Assist dialog
+    // Hitting ESC to dismiss the dialog also closes the assist dialog:
+    // E - Entity search dialog 
+    // D - Device search dialog
+    // C - Commands dialog
+    document.addEventListener('keydown', (e) => {
+      if ((e.code === 'KeyA' || e.code === 'KeyE' || e.code === 'KeyD' || e.code === 'KeyC' || e.code === 'KeyM') && isAssistDialogOpen())
+      {
+        e.stopPropagation();
+        e.preventDefault();
+        console.log(e.code + ' intercepted by hass-ui-tweaks to protect assist dialog history.');
+      }
+    }, true);
   }
 
   const baseTitle = document.title.replace(/^AI /, '');
@@ -241,6 +270,7 @@
         }
 
         adjustDialogWidth(isOpen);
+        assistDialogInterceptShortcuts();
       }
       catch
       {
