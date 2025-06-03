@@ -48,6 +48,17 @@
     return !!dialogOpen;
   }
 
+  function isAssistChatFocused()
+  {
+    const homeAssistant = document.querySelector('home-assistant');
+    const voiceDialog = homeAssistant?.shadowRoot?.querySelector('ha-voice-command-dialog');
+    const assistChat = voiceDialog?.shadowRoot?.querySelector('ha-assist-chat');
+    const textField = assistChat?.shadowRoot?.querySelector('ha-textfield');
+    const chatInput = textField?.shadowRoot?.querySelector('input');
+
+    return !!chatInput && textField?.shadowRoot?.activeElement === chatInput;
+  }
+
   function adjustDialogWidth(isOpen)
   {
     const homeAssistant = document.querySelector('home-assistant');
@@ -104,7 +115,7 @@
     // D - Device search dialog
     // C - Commands dialog
     document.addEventListener('keydown', (e) => {
-      if ((e.code === 'KeyA' || e.code === 'KeyE' || e.code === 'KeyD' || e.code === 'KeyC' || e.code === 'KeyM') && isAssistDialogOpen())
+      if ((e.code === 'KeyA' || e.code === 'KeyE' || e.code === 'KeyD' || e.code === 'KeyC' || e.code === 'KeyM') && isAssistDialogOpen() && !isAssistChatFocused())
       {
         e.stopPropagation();
         e.preventDefault();
