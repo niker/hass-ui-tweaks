@@ -311,13 +311,35 @@
       }
     };
   }
+  
+  // Add this near the other function definitions, before the interval setup
+  function setupUrlChangeListener() {
+    // Listen for changes in browser history
+    window.addEventListener('popstate', applyEditorTweaks());
 
+    // Listen for programmatic navigation changes
+    const originalPushState = history.pushState;
+    history.pushState = function() {
+      originalPushState.apply(this, arguments);
+      applyEditorTweaks()();
+    };
+
+    const originalReplaceState = history.replaceState;
+    history.replaceState = function() {
+      originalReplaceState.apply(this, arguments);
+      applyEditorTweaks()();
+    };
+  }
+  
   // periodically watch for assist dialog being shown or closed
   setInterval(applyAssistTweaks(), 500);
 
   // if we are on the right page, try to apply editor tweaks faster until it works;
   // then the update slows down to every 3 seconds to colorize newly added nodes
   setTimeout(applyEditorTweaks(), 500);
+
+  // Listen for dynamic URL change
+  setupUrlChangeListener();
 
 })();
 
