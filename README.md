@@ -7,6 +7,8 @@ This project is adding minor quality of life improvements to the UI. Modifies th
 - Prevent dialog window from closing when clicking outside its bounds
 - Prefix "AI" to the page title while chat is open
 - Protect the chat from accidentally being closed by shortcut keys
+- Allow URLs to be clickable (with http:// https://)
+- Allows clickable image previews (with img:// imgs://)
 
 ![Snímek obrazovky 2025-05-27 234334](https://github.com/user-attachments/assets/8e66ba58-32b5-49c4-b032-a8b8fd7d8ac7)
 

@@ -104,7 +104,7 @@
     {
       return;
     }
-    
+
     // Intercept action keys globally, those keys would otherwise put 
     // chat history at risk when text field is not selected.
     //
@@ -122,6 +122,95 @@
         console.log(e.code + ' intercepted by hass-ui-tweaks to protect assist dialog history.');
       }
     }, true);
+  }
+
+  function allowDialogToPostUrlAndImages(isOpen)
+  {
+    if (!isOpen)
+    {
+      return;
+    }
+
+    const homeAssistant = document.querySelector('home-assistant');
+    const voiceDialog = homeAssistant?.shadowRoot?.querySelector('ha-voice-command-dialog');
+    const assistChat = voiceDialog?.shadowRoot?.querySelector('ha-assist-chat');
+    const root = assistChat?.shadowRoot;
+
+    if (!root)
+    {
+      return;
+    }
+
+    // Get all message elements
+    const messages = root.querySelectorAll('.message');
+
+    messages.forEach(message => {
+      // Get the text content
+      const text = message.textContent;
+
+      // Regular expression to match URLs
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+      // Find all URLs in the message
+      const urls = text.match(urlRegex);
+
+      if (urls)
+      {
+        // Create a new div to hold the formatted content
+        const newContent = document.createElement('div');
+
+        // Replace URLs with clickable links
+        let formattedText = text;
+        urls.forEach(url => {
+          formattedText = formattedText.replace(
+              url,
+              `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
+          );
+        });
+
+        // Set the new HTML content
+        newContent.innerHTML = formattedText;
+
+        // Replace the original content
+        while (message.firstChild)
+        {
+          message.removeChild(message.firstChild);
+        }
+        message.appendChild(newContent);
+      }
+    });
+
+    messages.forEach(message => {
+          // Get the text content
+          const text = message.textContent;
+          // Regular expression to match URLs
+          const urlRegex = /(imgs?:\/\/[^\s]+)/g;
+          // Find all img URLs in the message
+          const urls = text.match(urlRegex);
+          if (urls) {
+            // Create a new div to hold the formatted content
+            const newContent = document.createElement('div');
+            // Replace URLs with image preview (max 40vh height) that is clickable and opens full image to new tab
+            let formattedText = text;
+            urls.forEach(url => {
+              const curl = url.replace('imgs://','https://').replace('img://','http://');
+              formattedText = formattedText.replace(
+                  url,
+                  `<a href="${curl}" target="_blank" rel="noopener noreferrer">
+                <img src="${curl}" style="max-height: 40vh; max-width: 100%; min-height:40vh; object-fit: contain; display: block;" alt="Preview">
+              </a>`
+              );
+            });
+            // Set the new HTML content
+            newContent.innerHTML = formattedText;
+            // Replace the original content
+            while (message.firstChild) {
+              message.removeChild(message.firstChild);
+            }
+            message.appendChild(newContent);
+          }
+        }
+    );
   }
 
   const baseTitle = document.title.replace(/^AI /, '');
@@ -281,7 +370,9 @@
         }
 
         adjustDialogWidth(isOpen);
+        allowDialogToPostUrlAndImages(isOpen)
         assistDialogInterceptShortcuts();
+        
       }
       catch
       {
@@ -311,9 +402,10 @@
       }
     };
   }
-  
+
   // Add this near the other function definitions, before the interval setup
-  function setupUrlChangeListener() {
+  function setupUrlChangeListener()
+  {
     // Listen for changes in browser history
     window.addEventListener('popstate', applyEditorTweaks());
 
@@ -330,7 +422,7 @@
       applyEditorTweaks()();
     };
   }
-  
+
   // periodically watch for assist dialog being shown or closed
   setInterval(applyAssistTweaks(), 500);
 
