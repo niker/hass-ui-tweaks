@@ -148,6 +148,11 @@
       // Get the text content
       const text = message.textContent;
 
+      if (text?.endsWith('…') === true)
+      {
+        return;
+      }
+
       // Regular expression to match URLs
       const urlRegex = /(https?:\/\/[^\s]+)/g;
 
@@ -183,17 +188,24 @@
     messages.forEach(message => {
           // Get the text content
           const text = message.textContent;
+
+          if (text?.endsWith('…') === true)
+          {
+            return;
+          }
+
           // Regular expression to match URLs
           const urlRegex = /(imgs?:\/\/[^\s]+)/g;
           // Find all img URLs in the message
           const urls = text.match(urlRegex);
-          if (urls) {
+          if (urls)
+          {
             // Create a new div to hold the formatted content
             const newContent = document.createElement('div');
             // Replace URLs with image preview (max 40vh height) that is clickable and opens full image to new tab
             let formattedText = text;
             urls.forEach(url => {
-              const curl = url.replace('imgs://','https://').replace('img://','http://');
+              const curl = url.replace('imgs://', 'https://').replace('img://', 'http://');
               formattedText = formattedText.replace(
                   url,
                   `<a href="${curl}" target="_blank" rel="noopener noreferrer">
@@ -204,7 +216,8 @@
             // Set the new HTML content
             newContent.innerHTML = formattedText;
             // Replace the original content
-            while (message.firstChild) {
+            while (message.firstChild)
+            {
               message.removeChild(message.firstChild);
             }
             message.appendChild(newContent);
@@ -370,9 +383,9 @@
         }
 
         adjustDialogWidth(isOpen);
-        allowDialogToPostUrlAndImages(isOpen)
+        allowDialogToPostUrlAndImages(isOpen);
         assistDialogInterceptShortcuts();
-        
+
       }
       catch
       {
