@@ -226,6 +226,62 @@
     );
   }
 
+  function allowDialogToUseMarkdown(isOpen)
+  {
+    if (!isOpen)
+    {
+      return;
+    }
+
+    const homeAssistant = document.querySelector('home-assistant');
+    const voiceDialog = homeAssistant?.shadowRoot?.querySelector('ha-voice-command-dialog');
+    const assistChat = voiceDialog?.shadowRoot?.querySelector('ha-assist-chat');
+    const root = assistChat?.shadowRoot;
+
+    if (!root)
+    {
+      return;
+    }
+
+    // Get all message elements
+    const messages = root.querySelectorAll('.message');
+
+    messages.forEach(message => {
+      // Get the text content
+      const text = message.textContent;
+
+      if (text?.endsWith('…') === true)
+      {
+        return;
+      }
+
+      // Regular expression to match text between ** markers
+      const boldRegex = /\*\*(.*?)\*\*/g;
+
+      // Check if there are any bold markers
+      if (text.includes('**'))
+      {
+        // Create a new div to hold the formatted content
+        const newContent = document.createElement('div');
+
+        // Replace **text** with <strong>text</strong>
+        let formattedText = text;
+        formattedText = formattedText.replace(boldRegex, '<strong>$1</strong>');
+
+        // Set the new HTML content
+        newContent.innerHTML = formattedText;
+
+        // Replace the original content
+        while (message.firstChild)
+        {
+          message.removeChild(message.firstChild);
+        }
+        message.appendChild(newContent);
+      }
+    });
+
+  }
+
   const baseTitle = document.title.replace(/^AI /, '');
 
   //////////////////////////////////////////////////////////////////////////////
@@ -384,6 +440,7 @@
 
         adjustDialogWidth(isOpen);
         allowDialogToPostUrlAndImages(isOpen);
+        allowDialogToUseMarkdown(isOpen);
         assistDialogInterceptShortcuts();
 
       }
