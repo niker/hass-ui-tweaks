@@ -16,9 +16,9 @@ This project is adding minor quality of life improvements to the UI. Modifies th
 
 - Colorize panels in editor
 - Change colors for each indentation level
+- Move the fullscreen button out of the text
 
-![Snímek obrazovky 2025-09-04 14:40:15](https://github.com/user-attachments/assets/378928d0-128b-493b-8513-e2936562701a)
-
+![Snímek obrazovky 2025-09-04 14:40:15](https://github.com/user-attachments/assets/9d377af5-17b6-4c10-a0e1-215d96fd8a28)
 
 
 
