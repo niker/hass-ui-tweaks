@@ -432,6 +432,44 @@
       rows.forEach(row => crawlAndColor(row, 0, true));
     });
   }
+  
+  function moveFullscreenButton(type)
+  {
+    const root = document.querySelector('home-assistant')?.
+        shadowRoot?.
+        querySelector('home-assistant-main')?.shadowRoot?.
+        querySelector(`ha-${type}-editor`)?.shadowRoot?.
+        querySelector(`manual-${type}-editor`);
+
+    if (!root)
+    {
+      return;
+    }
+    
+    findAndModifyFullscreenButtons(root);
+  }
+
+  function findAndModifyFullscreenButtons(element)
+  {
+    if (!element || !element.shadowRoot)
+    {
+      return;
+    }
+
+    // Find fullscreen buttons in current shadow root
+    const buttons = element.shadowRoot.querySelectorAll('ha-icon-button.fullscreen-button');
+    buttons.forEach(button => {
+      button.style.position = 'absolute';
+      button.style.top = '-20px';
+      button.style.border = '1px solid';
+      button.style.background = 'none';
+    });
+
+    // Recursively search all elements with shadow roots
+    const shadowElements = Array.from(element.shadowRoot.querySelectorAll('*')).filter(el => el.shadowRoot);
+
+    shadowElements.forEach(el => findAndModifyFullscreenButtons(el));
+  }
 
   function applyAssistTweaks()
   {
@@ -471,10 +509,12 @@
         if (enableAutomationColoring && url.pathname.includes('/config/automation/edit/'))
         {
           colorEditor('automation');
+          moveFullscreenButton('automation');
         }
         else if (enableScriptColoring && url.pathname.includes('/config/script/edit/'))
         {
           colorEditor('script');
+          moveFullscreenButton('script');
         }
       }
       catch
