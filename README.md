@@ -17,7 +17,9 @@ This project is adding minor quality of life improvements to the UI. Modifies th
 - Colorize panels in editor
 - Change colors for each indentation level
 
-![Snímek obrazovky 2025-05-27 234523](https://github.com/user-attachments/assets/35b18873-8273-49b0-9574-05b2a5301fa0)
+![Snímek obrazovky 2025-09-04 14:40:15](https://github.com/user-attachments/assets/378928d0-128b-493b-8513-e2936562701a)
+
+
 
 
 ## How to install:
