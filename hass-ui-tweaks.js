@@ -23,7 +23,7 @@
   const enableScriptColoring = true;
 
   // editor coloring opacity - how much color to apply in percentage
-  const editorColorOpacity = 5;
+  const editorColorOpacity = 6;
 
   // editor coloring saturation  
   const editorSaturation = 0.95;
@@ -32,7 +32,7 @@
   const editorLightness = 0.33;
 
   // editor coloring hue step
-  const editorHueStep = 122;
+  const editorHueStep = 24;
 
   // editor coloring hue start (default green)
   const editorHueStart = 120;
@@ -346,34 +346,47 @@
 
   function crawlAndColor(panel, level, skip = false)
   {
-    if (!skip && !panel.style.backgroundColor)
+    if (!skip && !panel.hass_ui_tweaks_color_set)
     {
+      panel.hass_ui_tweaks_color_set = true;
       panel.style.backgroundColor = getColorForLevel(level);
     }
-
+    
     if (!panel)
     {
       return;
     }
 
+    const cards = panel.shadowRoot?.querySelectorAll('ha-card') || [];
+    cards.forEach(el => {
+      if (!el.hass_ui_tweaks_color_set)
+      {
+        el.hass_ui_tweaks_color_set = true;
+        el.style.backgroundColor = getColorForLevel(level);
+      }
+    });
+
+    const cardBackgrounds = panel.shadowRoot?.querySelectorAll('div.card-content') || [];
+    cardBackgrounds.forEach(bg => {
+      if (!bg.hass_ui_tweaks_color_set)
+      {
+        bg.hass_ui_tweaks_color_set = true;
+        const color = getColorForLevel(level);        
+        bg.style.background = "none";
+        bg.style.backgroundColor = getColorForLevel(level);        
+        bg.style.marginRight = `${level <= 1 ? 10 : 0}px`;
+      }
+    });
+    
     // Look for any ha-automation-* elements in the shadow DOM
-    const automationElements = Array.from(panel.querySelectorAll('*')).filter(el =>
+    const automationElements = Array.from(panel.shadowRoot.querySelectorAll('*')).filter(el =>
         (el.tagName?.toLowerCase().startsWith('ha-automation-') || el.tagName?.toLowerCase() === 'ha-form' || el.tagName?.toLowerCase().startsWith('ha-selector')) && el.shadowRoot
     );
 
-    automationElements.forEach(el => {
-      let nextLevel = Array.from(el.shadowRoot.querySelectorAll('ha-card > ha-expansion-panel'));
-      if (nextLevel.length === 0)
-      {
-        // we need to go to a deeper shadow dom but keep the level
-        crawlAndColor(el.shadowRoot, level, true);
-      }
-      else
-      {
+    automationElements.forEach(el => {      
         // we found ha-expansion-panel elements, so we can color them
-        nextLevel.forEach(p => crawlAndColor(p, level + 1));
-      }
-    });
+        crawlAndColor(el, level + 1, true);
+      });
   }
 
   let editorUpdatesRunning = false;
@@ -404,7 +417,8 @@
     const sectionTypes = [
       'ha-automation-trigger',
       'ha-automation-condition',
-      'ha-automation-action'
+      'ha-automation-action',
+      'ha-automation'
     ];
 
     sectionTypes.forEach(sectionType => {
@@ -414,11 +428,8 @@
         return;
       }
 
-      const rows = section.querySelectorAll(`${sectionType}-row`);
-      rows.forEach(row => {
-        const panels = row.shadowRoot?.querySelectorAll('ha-expansion-panel') || [];
-        panels.forEach(panel => crawlAndColor(panel, 0));
-      });
+      const rows = section.querySelectorAll(`${sectionType}-row`) || [];
+      rows.forEach(row => crawlAndColor(row, 0, true));
     });
   }
 
