@@ -1,4 +1,4 @@
-# Home Assistant - UI Tweaks
+# Home Assistant - Automation Editor & Assist Chat UI Tweaks
 This project is adding quality of life improvements to Home Assistant Lovelace and Configuration UI. Modifies the Automation Editor for better clarity when dealing with deeply-nested automations. Modifies the Assist Chat Dialog to better facilitate longer chat sessions with AI. The tweaks only work for the web, not in phone app.
 
 ## Home Assistant Assist Chat UI
