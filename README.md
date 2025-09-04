@@ -23,6 +23,13 @@ This project is adding minor quality of life improvements to the UI. Modifies th
 
 
 ## How to install:
+
+### Install with HACS
+
+[![Open this repository in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=niker&repository=hass-ui-tweaks&category=plugin)
+
+
+### Manual installation
 - Clone this repository to `/config/www` in your Home Assitant
 
 	or
