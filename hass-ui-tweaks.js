@@ -22,17 +22,23 @@
   // enable coloring of script editor    
   const enableScriptColoring = true;
 
+  // enable left-hand guide lines for steps  
+  const enableHideGuideLines = true;
+
+  // enable moving the fullscreen button on text fields  
+  const enableMoveFullscreenButton = true;  
+  
   // editor coloring opacity - how much color to apply in percentage
-  const editorColorOpacity = 6;
+  const editorColorOpacity = 7;
 
   // editor coloring saturation  
   const editorSaturation = 0.95;
 
   // editor coloring lightness
-  const editorLightness = 0.33;
+  const editorLightness = 0.32;
 
   // editor coloring hue step
-  const editorHueStep = 24;
+  const editorHueStep = 28;
 
   // editor coloring hue start (default green)
   const editorHueStart = 120;
@@ -366,15 +372,19 @@
       }
     });
 
-    const cardBackgrounds = panel.shadowRoot?.querySelectorAll('div.card-content') || [];
+    const cardBackgrounds = panel.shadowRoot?.querySelectorAll('div.card-content, div.selector-row') || [];
     cardBackgrounds.forEach(bg => {
       if (!bg.hass_ui_tweaks_color_set)
       {
         bg.hass_ui_tweaks_color_set = true;
-        const color = getColorForLevel(level);        
         bg.style.background = "none";
         bg.style.backgroundColor = getColorForLevel(level);        
         bg.style.marginRight = `${level <= 1 ? 10 : 0}px`;
+        if (enableHideGuideLines)
+        {
+          bg.style.borderLeft = 'none';
+          bg.style.borderBottom = 'none';
+        }
       }
     });
     
@@ -386,7 +396,7 @@
     automationElements.forEach(el => {      
         // we found ha-expansion-panel elements, so we can color them
         crawlAndColor(el, level + 1, true);
-      });
+      });   
   }
 
   let editorUpdatesRunning = false;
@@ -417,12 +427,14 @@
     const sectionTypes = [
       'ha-automation-trigger',
       'ha-automation-condition',
-      'ha-automation-action',
+      'ha-automation-action',      
+      'ha-script-field',
       'ha-automation'
     ];
 
     sectionTypes.forEach(sectionType => {
-      const section = root.querySelector(sectionType)?.shadowRoot;
+      const sectionTypeParent = sectionType === 'ha-script-field' ? 'ha-script-fields' : sectionType;
+      const section = root.querySelector(sectionTypeParent)?.shadowRoot;
       if (!section)
       {
         return;
@@ -451,7 +463,7 @@
 
   function findAndModifyFullscreenButtons(element)
   {
-    if (!element || !element.shadowRoot)
+    if (!element || !element.shadowRoot || !enableMoveFullscreenButton)
     {
       return;
     }
