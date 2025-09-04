@@ -1,5 +1,7 @@
 {
-    "name": "hass-ui-tweaks",
+    "name": "UI Tweaks",
     "render_readme": true,
-    "filename": "hass-ui-tweaks.js"
+    "filename": "hass-ui-tweaks.js",
+	"content_in_root": true,
+	"type": "plugin"
 }
