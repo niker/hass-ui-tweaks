@@ -16,10 +16,10 @@ This project is adding minor quality of life improvements to the UI. Modifies th
 
 - Colorize panels in editor
 - Change colors for each indentation level
+- Hide excessive guide lines
 - Move the fullscreen button out of the text
 
-![Snímek obrazovky 2025-09-04 14:40:15](https://github.com/user-attachments/assets/9d377af5-17b6-4c10-a0e1-215d96fd8a28)
-
+![Snímek obrazovky 2025-09-04 14:40:15](https://github.com/user-attachments/assets/37956466-431c-42df-ab9a-e239653a89b9)
 
 
 ## How to install:
