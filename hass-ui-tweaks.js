@@ -16,6 +16,9 @@
   // AI assist dialog will protect its history from accidental clearing
   const assistProtectKeys = true;
 
+  // AI assist dialog will prevent pasting of long texts, this is only useful to prevent cheating in text-based games 
+  const assistPreventPaste = false;
+
   // enable coloring of automation editor
   const enableAutomationColoring = true;
 
@@ -42,6 +45,7 @@
 
   // editor coloring hue start (default green)
   const editorHueStart = 120;
+    
 
   //////////////////////////////////////////////////////////////////////////////
   /// AI assist tweaks
@@ -285,7 +289,51 @@
         message.appendChild(newContent);
       }
     });
+  }
 
+  let previousChatDialogInputText = '';
+  function preventDialogPaste(isOpen)
+  {
+    if (!isOpen || !assistPreventPaste)
+    {
+      return;
+    }
+    
+    const homeAssistant = document.querySelector('home-assistant');
+    const voiceDialog = homeAssistant?.shadowRoot?.querySelector('ha-voice-command-dialog');
+    const assistChat = voiceDialog?.shadowRoot?.querySelector('ha-assist-chat');
+    const textField = assistChat?.shadowRoot?.querySelector('ha-textfield');
+    const root = textField?.shadowRoot;
+
+    if (!root)
+    {
+      return;
+    }
+    
+    const input = root.querySelector('input');
+    
+    if (!input.hass_ui_tweaks_prevent_paste_listener_added)
+    {
+      input.hass_ui_tweaks_prevent_paste_listener_added = true;
+      input.addEventListener('input', ev => {
+        const currentDiff = input.value.length - previousChatDialogInputText.length;
+        if (currentDiff > 12)
+        {
+          //input.value = previousChatDialogInputText;
+          setTimeout(() => {
+            input.value = previousChatDialogInputText;
+            // trigger the event listener again to update SPA
+            input.dispatchEvent(new Event('input'));
+          }, 0);
+          ev.stopPropagation();
+          ev.preventDefault();
+        }
+        else
+        {
+          previousChatDialogInputText = input.value;
+        }
+      });
+    }    
   }
 
   const baseTitle = document.title.replace(/^AI /, '');
@@ -502,7 +550,9 @@
         adjustDialogWidth(isOpen);
         allowDialogToPostUrlAndImages(isOpen);
         allowDialogToUseMarkdown(isOpen);
+        preventDialogPaste(isOpen)
         assistDialogInterceptShortcuts();
+
 
       }
       catch
