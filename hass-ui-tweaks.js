@@ -18,6 +18,18 @@
 
   // AI assist dialog will prevent pasting of long texts, this is only useful to prevent cheating in text-based games 
   const assistPreventPaste = false;
+  
+  // enable sidebar blur everywhere
+  const sidebarBlurEnable = true;
+
+  // set sidebar opacity
+  const sidebarBlurOpacity = '0.8';
+
+  // enable sidebar blur everywhere
+  const backdropBlurEnable = true;
+
+  // set sidebar opacity
+  const backdropBlurAmount = '4px';
 
   // enable coloring of automation editor
   const enableAutomationColoring = true;
@@ -106,11 +118,22 @@
         });
       }
     }
+    
+    if (backdropBlurEnable)
+    {
+      const backdrop = dialog?.shadowRoot?.querySelector('.mdc-dialog__scrim');
+      if (!backdrop.hutTweakApplied)
+      {
+        backdrop.style.backdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;
+        backdrop.style.webkitBackdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;
+        backdrop.hutTweakApplied = true;
+      }
+    }    
   }
 
-  function assistDialogInterceptShortcuts()
+  function assistDialogInterceptShortcuts(isOpen)
   {
-    if (!assistProtectKeys)
+    if (!assistProtectKeys || !isOpen)
     {
       return;
     }
@@ -315,11 +338,23 @@
     if (!input.hass_ui_tweaks_prevent_paste_listener_added)
     {
       input.hass_ui_tweaks_prevent_paste_listener_added = true;
+      input.shift_key_held = false;
+      input.addEventListener('keydown', (event) => {
+        if (event.shiftKey) {
+          input.shift_key_held = true;
+        }
+      });
+
+      input.addEventListener('keyup', (event) => {
+        if (!event.shiftKey) {
+          input.shift_key_held = false;
+        }
+      });
+      
       input.addEventListener('input', ev => {
         const currentDiff = input.value.length - previousChatDialogInputText.length;
-        if (currentDiff > 12)
-        {
-          //input.value = previousChatDialogInputText;
+        if (currentDiff > 12 && !input.shift_key_held) // this allows less known shift + insert paste
+        {          
           setTimeout(() => {
             input.value = previousChatDialogInputText;
             // trigger the event listener again to update SPA
@@ -492,6 +527,92 @@
       rows.forEach(row => crawlAndColor(row, 0, true));
     });
   }
+
+  function blurSidebar()
+  {
+    if (!sidebarBlurEnable)
+    {
+      return;
+    }   
+    
+    const drawer = document.querySelector('home-assistant')?.
+        shadowRoot?.
+        querySelector('home-assistant-main')?.shadowRoot?.
+        querySelector(`ha-drawer`);
+    
+    const sidebar = drawer?.querySelector(`ha-sidebar`);
+    const content = drawer?.shadowRoot?.querySelector('.mdc-drawer');
+    
+    if (!sidebar || !content)
+    {
+      return;
+    }
+
+    const sidebarStyle = getComputedStyle(sidebar);
+    const sidebarBgColor = sidebarStyle.getPropertyValue('--sidebar-background-color').trim();
+    const hex = sidebarBgColor.replace('#', '');
+    let rgb = '30, 30, 30'; // fallback
+    if (sidebarBgColor) {
+      const rgbMatch = sidebarBgColor.match(/rgba?\(([^)]+)\)/);
+      if (rgbMatch) {
+        rgb = rgbMatch[1].split(',').slice(0, 3).map(v => v.trim()).join(', ');
+      } else {
+        // Try hex format
+        const hex = sidebarBgColor.replace('#', '');
+        rgb = [
+          parseInt(hex.substring(0, 2), 16),
+          parseInt(hex.substring(2, 4), 16),
+          parseInt(hex.substring(4, 6), 16)
+        ].join(', ');
+      }
+    }
+
+    if (!sidebar.hutTweakApplied)
+    {
+      sidebar.style.backdropFilter = 'blur(8px) saturate(1.1)';
+      sidebar.style.webkitBackdropFilter = 'blur(8px) saturate(1.1)';
+      sidebar.style.backgroundColor = `rgba(${rgb}, ${sidebarBlurOpacity})`;
+      sidebar.hutTweakApplied = true;
+    }
+    
+    if (!content.hutTweakApplied)
+    {    
+      content.style.background = 'none';
+      content.hutTweakApplied = true;
+    }
+  }
+
+  function blurBackdrop()
+  {
+    if (!backdropBlurEnable)
+    {
+      return;
+    }
+
+    const homeAssistant = document.querySelector('home-assistant');
+    const moreInfoDialog = homeAssistant?.shadowRoot?.querySelector('ha-more-info-dialog');
+    const dialogOpen = moreInfoDialog?.shadowRoot?.querySelector('ha-dialog');
+    const backdrop = dialogOpen?.shadowRoot?.querySelector('.mdc-dialog__scrim');
+    
+    if (!backdrop.hutTweakApplied)
+    {
+      backdrop.style.backdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;      
+      backdrop.style.webkitBackdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;
+      backdrop.hutTweakApplied = true;
+    }
+    /*
+    const assistDialog = homeAssistant?.shadowRoot?.querySelector('ha-voice-command-dialog');
+    const assistDialogOpen = assistDialog?.shadowRoot?.querySelector('ha-dialog');
+    const assistBackdrop = assistDialogOpen?.shadowRoot?.querySelector('.mdc-dialog__scrim');
+    console.log(assistBackdrop);
+    if (!assistBackdrop.hutTweakApplied)
+    {
+      assistBackdrop.style.backdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;
+      assistBackdrop.style.webkitBackdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;
+      assistBackdrop.hutTweakApplied = true;
+    }
+    */ 
+  }
   
   function moveFullscreenButton(type)
   {
@@ -552,8 +673,6 @@
         allowDialogToUseMarkdown(isOpen);
         preventDialogPaste(isOpen)
         assistDialogInterceptShortcuts();
-
-
       }
       catch
       {
@@ -586,6 +705,21 @@
     };
   }
 
+  function applyBlurTweaks()
+  {
+    return () => {
+      try
+      {       
+        blurSidebar();
+        blurBackdrop()
+      }
+      catch
+      {
+        // ignore and try again in a bit
+      }
+    };
+  }
+
   // Add this near the other function definitions, before the interval setup
   function setupUrlChangeListener()
   {
@@ -606,6 +740,10 @@
     };
   }
 
+  // blur tweaks should be applied after every mouse click with 1ms delay and on reload
+  document.addEventListener('click', () => setTimeout(applyBlurTweaks(), 1));
+  setTimeout(applyBlurTweaks(), 1);
+  
   // periodically watch for assist dialog being shown or closed
   setInterval(applyAssistTweaks(), 500);
 
