@@ -18,7 +18,7 @@
 
   // AI assist dialog will prevent pasting of long texts, this is only useful to prevent cheating in text-based games 
   const assistPreventPaste = false;
-  
+
   // enable sidebar blur everywhere
   const sidebarBlurEnable = true;
 
@@ -41,8 +41,8 @@
   const enableHideGuideLines = true;
 
   // enable moving the fullscreen button on text fields  
-  const enableMoveFullscreenButton = true;  
-  
+  const enableMoveFullscreenButton = true;
+
   // editor coloring opacity - how much color to apply in percentage
   const editorColorOpacity = 7;
 
@@ -57,7 +57,6 @@
 
   // editor coloring hue start (default green)
   const editorHueStart = 120;
-    
 
   //////////////////////////////////////////////////////////////////////////////
   /// AI assist tweaks
@@ -118,7 +117,7 @@
         });
       }
     }
-    
+
     if (backdropBlurEnable)
     {
       const backdrop = dialog?.shadowRoot?.querySelector('.mdc-dialog__scrim');
@@ -128,7 +127,7 @@
         backdrop.style.webkitBackdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;
         backdrop.hutTweakApplied = true;
       }
-    }    
+    }
   }
 
   function assistDialogInterceptShortcuts(isOpen)
@@ -167,21 +166,23 @@
     const homeAssistant = document.querySelector('home-assistant');
     const voiceDialog = homeAssistant?.shadowRoot?.querySelector('ha-voice-command-dialog');
     const assistChat = voiceDialog?.shadowRoot?.querySelector('ha-assist-chat');
-    const root = assistChat?.shadowRoot;
+    const messages = assistChat?.shadowRoot?.querySelectorAll('ha-markdown');
 
-    if (!root)
+    if (!messages)
     {
       return;
     }
 
     // Get all message elements
-    const messages = root.querySelectorAll('.message');
+    messages.forEach(messageRoot => {
 
-    messages.forEach(message => {
+      const message = messageRoot.shadowRoot.querySelector('ha-markdown-element');
+      console.log(message.textContent);
+
       // Get the text content
       const text = message.textContent;
 
-      if (text?.endsWith('…') === true)
+      if (text?.trimEnd()?.endsWith('…') === true)
       {
         return;
       }
@@ -218,11 +219,14 @@
       }
     });
 
-    messages.forEach(message => {
+    messages.forEach(messageRoot => {
+
+          const message = messageRoot.shadowRoot.querySelector('ha-markdown-element');
+      
           // Get the text content
           const text = message.textContent;
 
-          if (text?.endsWith('…') === true)
+          if (text?.trimEnd()?.endsWith('…') === true)
           {
             return;
           }
@@ -315,13 +319,14 @@
   }
 
   let previousChatDialogInputText = '';
+
   function preventDialogPaste(isOpen)
   {
     if (!isOpen || !assistPreventPaste)
     {
       return;
     }
-    
+
     const homeAssistant = document.querySelector('home-assistant');
     const voiceDialog = homeAssistant?.shadowRoot?.querySelector('ha-voice-command-dialog');
     const assistChat = voiceDialog?.shadowRoot?.querySelector('ha-assist-chat');
@@ -332,29 +337,31 @@
     {
       return;
     }
-    
+
     const input = root.querySelector('input');
-    
+
     if (!input.hass_ui_tweaks_prevent_paste_listener_added)
     {
       input.hass_ui_tweaks_prevent_paste_listener_added = true;
       input.shift_key_held = false;
       input.addEventListener('keydown', (event) => {
-        if (event.shiftKey) {
+        if (event.shiftKey)
+        {
           input.shift_key_held = true;
         }
       });
 
       input.addEventListener('keyup', (event) => {
-        if (!event.shiftKey) {
+        if (!event.shiftKey)
+        {
           input.shift_key_held = false;
         }
       });
-      
+
       input.addEventListener('input', ev => {
         const currentDiff = input.value.length - previousChatDialogInputText.length;
         if (currentDiff > 12 && !input.shift_key_held) // this allows less known shift + insert paste
-        {          
+        {
           setTimeout(() => {
             input.value = previousChatDialogInputText;
             // trigger the event listener again to update SPA
@@ -368,7 +375,7 @@
           previousChatDialogInputText = input.value;
         }
       });
-    }    
+    }
   }
 
   const baseTitle = document.title.replace(/^AI /, '');
@@ -440,7 +447,7 @@
       panel.hass_ui_tweaks_color_set = true;
       panel.style.backgroundColor = getColorForLevel(level);
     }
-    
+
     if (!panel)
     {
       return;
@@ -460,8 +467,8 @@
       if (!bg.hass_ui_tweaks_color_set)
       {
         bg.hass_ui_tweaks_color_set = true;
-        bg.style.background = "none";
-        bg.style.backgroundColor = getColorForLevel(level);        
+        bg.style.background = 'none';
+        bg.style.backgroundColor = getColorForLevel(level);
         bg.style.marginRight = `${level <= 1 ? 10 : 0}px`;
         if (enableHideGuideLines)
         {
@@ -470,16 +477,16 @@
         }
       }
     });
-    
+
     // Look for any ha-automation-* elements in the shadow DOM
     const automationElements = Array.from(panel.shadowRoot.querySelectorAll('*')).filter(el =>
         (el.tagName?.toLowerCase().startsWith('ha-automation-') || el.tagName?.toLowerCase() === 'ha-form' || el.tagName?.toLowerCase().startsWith('ha-selector')) && el.shadowRoot
     );
 
-    automationElements.forEach(el => {      
-        // we found ha-expansion-panel elements, so we can color them
-        crawlAndColor(el, level + 1, true);
-      });   
+    automationElements.forEach(el => {
+      // we found ha-expansion-panel elements, so we can color them
+      crawlAndColor(el, level + 1, true);
+    });
   }
 
   let editorUpdatesRunning = false;
@@ -510,7 +517,7 @@
     const sectionTypes = [
       'ha-automation-trigger',
       'ha-automation-condition',
-      'ha-automation-action',      
+      'ha-automation-action',
       'ha-script-field',
       'ha-automation'
     ];
@@ -533,16 +540,16 @@
     if (!sidebarBlurEnable)
     {
       return;
-    }   
-    
+    }
+
     const drawer = document.querySelector('home-assistant')?.
         shadowRoot?.
         querySelector('home-assistant-main')?.shadowRoot?.
         querySelector(`ha-drawer`);
-    
+
     const sidebar = drawer?.querySelector(`ha-sidebar`);
     const content = drawer?.shadowRoot?.querySelector('.mdc-drawer');
-    
+
     if (!sidebar || !content)
     {
       return;
@@ -552,11 +559,15 @@
     const sidebarBgColor = sidebarStyle.getPropertyValue('--sidebar-background-color').trim();
     const hex = sidebarBgColor.replace('#', '');
     let rgb = '30, 30, 30'; // fallback
-    if (sidebarBgColor) {
+    if (sidebarBgColor)
+    {
       const rgbMatch = sidebarBgColor.match(/rgba?\(([^)]+)\)/);
-      if (rgbMatch) {
+      if (rgbMatch)
+      {
         rgb = rgbMatch[1].split(',').slice(0, 3).map(v => v.trim()).join(', ');
-      } else {
+      }
+      else
+      {
         // Try hex format
         const hex = sidebarBgColor.replace('#', '');
         rgb = [
@@ -574,9 +585,9 @@
       sidebar.style.backgroundColor = `rgba(${rgb}, ${sidebarBlurOpacity})`;
       sidebar.hutTweakApplied = true;
     }
-    
+
     if (!content.hutTweakApplied)
-    {    
+    {
       content.style.background = 'none';
       content.hutTweakApplied = true;
     }
@@ -593,10 +604,10 @@
     const moreInfoDialog = homeAssistant?.shadowRoot?.querySelector('ha-more-info-dialog');
     const dialogOpen = moreInfoDialog?.shadowRoot?.querySelector('ha-dialog');
     const backdrop = dialogOpen?.shadowRoot?.querySelector('.mdc-dialog__scrim');
-    
+
     if (!backdrop.hutTweakApplied)
     {
-      backdrop.style.backdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;      
+      backdrop.style.backdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;
       backdrop.style.webkitBackdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;
       backdrop.hutTweakApplied = true;
     }
@@ -611,9 +622,9 @@
       assistBackdrop.style.webkitBackdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;
       assistBackdrop.hutTweakApplied = true;
     }
-    */ 
+    */
   }
-  
+
   function moveFullscreenButton(type)
   {
     const root = document.querySelector('home-assistant')?.
@@ -626,7 +637,7 @@
     {
       return;
     }
-    
+
     findAndModifyFullscreenButtons(root);
   }
 
@@ -671,7 +682,7 @@
         adjustDialogWidth(isOpen);
         allowDialogToPostUrlAndImages(isOpen);
         allowDialogToUseMarkdown(isOpen);
-        preventDialogPaste(isOpen)
+        preventDialogPaste(isOpen);
         assistDialogInterceptShortcuts();
       }
       catch
@@ -709,9 +720,9 @@
   {
     return () => {
       try
-      {       
+      {
         blurSidebar();
-        blurBackdrop()
+        blurBackdrop();
       }
       catch
       {
@@ -743,7 +754,7 @@
   // blur tweaks should be applied after every mouse click with 1ms delay and on reload
   document.addEventListener('click', () => setTimeout(applyBlurTweaks(), 1));
   setTimeout(applyBlurTweaks(), 1);
-  
+
   // periodically watch for assist dialog being shown or closed
   setInterval(applyAssistTweaks(), 500);
 
