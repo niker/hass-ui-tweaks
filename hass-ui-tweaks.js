@@ -177,10 +177,14 @@
     messages.forEach(messageRoot => {
 
       const message = messageRoot.shadowRoot.querySelector('ha-markdown-element');
-      console.log(message.textContent);
+
+      if (message.huiTweaks_injected_http)
+      {
+        return;
+      }
 
       // Get the text content
-      const text = message.textContent;
+      const text = message.outerText;
 
       if (text?.trimEnd()?.endsWith('…') === true)
       {
@@ -217,50 +221,56 @@
         }
         message.appendChild(newContent);
       }
+      message.huiTweaks_injected_http = true;
     });
 
     messages.forEach(messageRoot => {
 
-          const message = messageRoot.shadowRoot.querySelector('ha-markdown-element');
-      
-          // Get the text content
-          const text = message.textContent;
+      const message = messageRoot.shadowRoot.querySelector('ha-markdown-element');
 
-          if (text?.trimEnd()?.endsWith('…') === true)
-          {
-            return;
-          }
+      if (message.huiTweaks_injected_img)
+      {
+        return;
+      }
 
-          // Regular expression to match URLs
-          const urlRegex = /(imgs?:\/\/[^\s]+)/g;
-          // Find all img URLs in the message
-          const urls = text.match(urlRegex);
-          if (urls)
-          {
-            // Create a new div to hold the formatted content
-            const newContent = document.createElement('div');
-            // Replace URLs with image preview (max 40vh height) that is clickable and opens full image to new tab
-            let formattedText = text;
-            urls.forEach(url => {
-              const curl = url.replace('imgs://', 'https://').replace('img://', 'http://');
-              formattedText = formattedText.replace(
-                  url,
-                  `<a href="${curl}" target="_blank" rel="noopener noreferrer">
-                <img src="${curl}" style="max-height: 40vh; max-width: 100%; min-height:40vh; object-fit: contain; display: block;" alt="Preview">
-              </a>`
-              );
-            });
-            // Set the new HTML content
-            newContent.innerHTML = formattedText;
-            // Replace the original content
-            while (message.firstChild)
-            {
-              message.removeChild(message.firstChild);
-            }
-            message.appendChild(newContent);
-          }
+      // Get the text content
+      const text = message.outerText;
+
+      if (text?.trimEnd()?.endsWith('…') === true)
+      {
+        return;
+      }
+
+      // Regular expression to match URLs
+      const urlRegex = /(imgs?:\/\/[^\s]+)/g;
+      // Find all img URLs in the message
+      const urls = text.match(urlRegex);
+      if (urls)
+      {
+        // Create a new div to hold the formatted content
+        const newContent = document.createElement('div');
+        // Replace URLs with image preview (max 40vh height) that is clickable and opens full image to new tab
+        let formattedText = text;
+        urls.forEach(url => {
+          const curl = url.replace('imgs://', 'https://').replace('img://', 'http://');
+          formattedText = formattedText.replace(
+              url,
+              `<a href="${curl}" target="_blank" rel="noopener noreferrer">
+            <img src="${curl}" style="max-height: 40vh; max-width: 100%; min-height:40vh; object-fit: contain; display: block;" alt="Preview">
+          </a>`
+          );
+        });
+        // Set the new HTML content
+        newContent.innerHTML = formattedText;
+        // Replace the original content
+        while (message.firstChild)
+        {
+          message.removeChild(message.firstChild);
         }
-    );
+        message.appendChild(newContent);
+      }
+      message.huiTweaks_injected_img = true;
+    });
   }
 
   function allowDialogToUseMarkdown(isOpen)
