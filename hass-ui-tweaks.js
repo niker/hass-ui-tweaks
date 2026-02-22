@@ -17,7 +17,7 @@
   const assistProtectKeys = true;
 
   // AI assist dialog will prevent pasting of long texts, this is only useful to prevent cheating in text-based games 
-  const assistPreventPaste = false;
+  const assistPreventPaste = true;
 
   // enable sidebar blur everywhere
   const sidebarBlurEnable = true;
@@ -39,9 +39,6 @@
 
   // enable left-hand guide lines for steps  
   const enableHideGuideLines = true;
-
-  // enable moving the fullscreen button on text fields  
-  const enableMoveFullscreenButton = true;
 
   // editor coloring opacity - how much color to apply in percentage
   const editorColorOpacity = 7;
@@ -620,59 +617,9 @@
       backdrop.style.backdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;
       backdrop.style.webkitBackdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;
       backdrop.hutTweakApplied = true;
-    }
-    /*
-    const assistDialog = homeAssistant?.shadowRoot?.querySelector('ha-voice-command-dialog');
-    const assistDialogOpen = assistDialog?.shadowRoot?.querySelector('ha-dialog');
-    const assistBackdrop = assistDialogOpen?.shadowRoot?.querySelector('.mdc-dialog__scrim');
-    console.log(assistBackdrop);
-    if (!assistBackdrop.hutTweakApplied)
-    {
-      assistBackdrop.style.backdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;
-      assistBackdrop.style.webkitBackdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;
-      assistBackdrop.hutTweakApplied = true;
-    }
-    */
+    }    
   }
-
-  function moveFullscreenButton(type)
-  {
-    const root = document.querySelector('home-assistant')?.
-        shadowRoot?.
-        querySelector('home-assistant-main')?.shadowRoot?.
-        querySelector(`ha-${type}-editor`)?.shadowRoot?.
-        querySelector(`manual-${type}-editor`);
-
-    if (!root)
-    {
-      return;
-    }
-
-    findAndModifyFullscreenButtons(root);
-  }
-
-  function findAndModifyFullscreenButtons(element)
-  {
-    if (!element || !element.shadowRoot || !enableMoveFullscreenButton)
-    {
-      return;
-    }
-
-    // Find fullscreen buttons in current shadow root
-    const buttons = element.shadowRoot.querySelectorAll('ha-icon-button.fullscreen-button');
-    buttons.forEach(button => {
-      button.style.position = 'absolute';
-      button.style.top = '-20px';
-      button.style.border = '1px solid';
-      button.style.background = 'none';
-    });
-
-    // Recursively search all elements with shadow roots
-    const shadowElements = Array.from(element.shadowRoot.querySelectorAll('*')).filter(el => el.shadowRoot);
-
-    shadowElements.forEach(el => findAndModifyFullscreenButtons(el));
-  }
-
+  
   function applyAssistTweaks()
   {
     return () => {
@@ -710,13 +657,11 @@
         const url = new URL(window.location.href);
         if (enableAutomationColoring && url.pathname.includes('/config/automation/edit/'))
         {
-          colorEditor('automation');
-          moveFullscreenButton('automation');
+          colorEditor('automation');          
         }
         else if (enableScriptColoring && url.pathname.includes('/config/script/edit/'))
         {
-          colorEditor('script');
-          moveFullscreenButton('script');
+          colorEditor('script');          
         }
       }
       catch
