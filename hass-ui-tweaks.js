@@ -148,21 +148,25 @@
     }
   }
 
-  function assistDialogInterceptShortcuts(isOpen)
-  {
+  const assistKeyHandler = (e) => {
+    if (isAssistDialogOpen() && !isAssistChatFocused() && (e.code === 'KeyA' || e.code === 'KeyE' || e.code === 'KeyD' || e.code === 'KeyC' || e.code === 'KeyM')) {
+      e.stopPropagation();
+      e.preventDefault();
+      console.log(e.code + ' intercepted by hass-ui-tweaks to protect assist dialog history.');
+    }
+  };
+
+  function manageAssistShortcutsListener(isOpen) {
     if (!assistProtectKeys) {
       return;
     }
 
-    if (!document.hutShortcutsInterceptAdded) {
-      document.addEventListener('keydown', (e) => {
-        if (isAssistDialogOpen() && !isAssistChatFocused() && (e.code === 'KeyA' || e.code === 'KeyE' || e.code === 'KeyD' || e.code === 'KeyC' || e.code === 'KeyM')) {
-          e.stopPropagation();
-          e.preventDefault();
-          console.log(e.code + ' intercepted by hass-ui-tweaks to protect assist dialog history.');
-        }
-      }, true);
-      document.hutShortcutsInterceptAdded = true;
+    if (isOpen && !document.hutAssistShortcutsActive) {
+      document.addEventListener('keydown', assistKeyHandler, true);
+      document.hutAssistShortcutsActive = true;
+    } else if (!isOpen && document.hutAssistShortcutsActive) {
+      document.removeEventListener('keydown', assistKeyHandler, true);
+      document.hutAssistShortcutsActive = false;
     }
   }
 
@@ -539,6 +543,11 @@
       return;
     }
 
+    if (document.hutSidebarTweaked)
+    {
+      return;
+    }
+
     const drawer = document.querySelector('home-assistant')?.
         shadowRoot?.
         querySelector('home-assistant-main')?.shadowRoot?.
@@ -588,6 +597,8 @@
       content.style.background = 'none';
       content.hutTweakApplied = true;
     }
+
+    document.hutSidebarTweaked = true;
   }
 
   function blurBackdrop()
@@ -665,7 +676,7 @@
         allowDialogToPostUrlAndImages(isOpen);
         allowDialogToUseMarkdown(isOpen);
         preventDialogPaste(isOpen);
-        assistDialogInterceptShortcuts();
+        manageAssistShortcutsListener(isOpen);
       }
       catch
       {
