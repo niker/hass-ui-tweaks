@@ -17,7 +17,8 @@
   const assistProtectKeys = true;
 
   // AI assist dialog will prevent pasting of long texts, this is only useful to prevent cheating in text-based games 
-  const assistPreventPaste = true;
+  const assistPreventPaste = false;
+  const maxAssistPasteLength = 12;
 
   // enable sidebar blur everywhere
   const sidebarBlurEnable = true;
@@ -149,28 +150,20 @@
 
   function assistDialogInterceptShortcuts(isOpen)
   {
-    if (!assistProtectKeys || !isOpen)
-    {
+    if (!assistProtectKeys) {
       return;
     }
 
-    // Intercept action keys globally, those keys would otherwise put 
-    // chat history at risk when text field is not selected.
-    //
-    // Would reopen the dialog and clear history:
-    // A - Assist dialog
-    // Hitting ESC to dismiss the dialog also closes the assist dialog:
-    // E - Entity search dialog 
-    // D - Device search dialog
-    // C - Commands dialog
-    document.addEventListener('keydown', (e) => {
-      if ((e.code === 'KeyA' || e.code === 'KeyE' || e.code === 'KeyD' || e.code === 'KeyC' || e.code === 'KeyM') && isAssistDialogOpen() && !isAssistChatFocused())
-      {
-        e.stopPropagation();
-        e.preventDefault();
-        console.log(e.code + ' intercepted by hass-ui-tweaks to protect assist dialog history.');
-      }
-    }, true);
+    if (!document.hutShortcutsInterceptAdded) {
+      document.addEventListener('keydown', (e) => {
+        if (isAssistDialogOpen() && !isAssistChatFocused() && (e.code === 'KeyA' || e.code === 'KeyE' || e.code === 'KeyD' || e.code === 'KeyC' || e.code === 'KeyM')) {
+          e.stopPropagation();
+          e.preventDefault();
+          console.log(e.code + ' intercepted by hass-ui-tweaks to protect assist dialog history.');
+        }
+      }, true);
+      document.hutShortcutsInterceptAdded = true;
+    }
   }
 
   function allowDialogToPostUrlAndImages(isOpen)
@@ -345,11 +338,15 @@
     });
   }
 
-  let previousChatDialogInputText = '';
 
   function preventDialogPaste(isOpen)
   {
-    if (!isOpen || !assistPreventPaste)
+    if (!assistPreventPaste)
+    {
+      return;
+    }
+
+    if (!isOpen)
     {
       return;
     }
@@ -358,51 +355,24 @@
     const voiceDialog = homeAssistant?.shadowRoot?.querySelector('ha-voice-command-dialog');
     const assistChat = voiceDialog?.shadowRoot?.querySelector('ha-assist-chat');
     const textField = assistChat?.shadowRoot?.querySelector('ha-textfield');
-    const root = textField?.shadowRoot;
-
-    if (!root)
+    const chatInput = textField?.shadowRoot?.querySelector('.mdc-text-field__input');
+    if (!chatInput)
     {
       return;
     }
-
-    const input = root.querySelector('input');
-
-    if (!input.hass_ui_tweaks_prevent_paste_listener_added)
+    if (chatInput._hutPastePrevented)
     {
-      input.hass_ui_tweaks_prevent_paste_listener_added = true;
-      input.shift_key_held = false;
-      input.addEventListener('keydown', (event) => {
-        if (event.shiftKey)
-        {
-          input.shift_key_held = true;
-        }
-      });
-
-      input.addEventListener('keyup', (event) => {
-        if (!event.shiftKey)
-        {
-          input.shift_key_held = false;
-        }
-      });
-
-      input.addEventListener('input', ev => {
-        const currentDiff = input.value.length - previousChatDialogInputText.length;
-        if (currentDiff > 12 && !input.shift_key_held) // this allows less known shift + insert paste
-        {
-          setTimeout(() => {
-            input.value = previousChatDialogInputText;
-            // trigger the event listener again to update SPA
-            input.dispatchEvent(new Event('input'));
-          }, 0);
-          ev.stopPropagation();
-          ev.preventDefault();
-        }
-        else
-        {
-          previousChatDialogInputText = input.value;
-        }
-      });
+      return;
     }
+    chatInput._hutPastePrevented = true;
+    chatInput.addEventListener('paste', (e) => {
+      const pastedText = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+      if (pastedText.length > maxAssistPasteLength) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log(`hass-ui-tweaks prevented pasting ${pastedText.length} characters into assist chat.`);
+      }
+    }, true);
   }
 
   const baseTitle = document.title.replace(/^AI /, '');
