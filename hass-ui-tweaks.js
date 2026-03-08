@@ -88,41 +88,61 @@
       return;
     }
 
-    const dialog = dialogShadow.querySelector('ha-dialog');
-    const surface = dialog?.shadowRoot?.querySelector('.mdc-dialog__surface');
+    const ha_dialog = dialogShadow.querySelector('ha-dialog');
+    const dialog = ha_dialog?.shadowRoot.querySelector('wa-dialog');
+    const surface = dialog?.shadowRoot?.querySelector('dialog');
 
     if (surface)
     {
       surface.style.minWidth = isOpen ? assistWidth : '';
+      surface.style.setProperty('max-width', isOpen ? assistWidth : '', isOpen ? 'important' : '');
+      surface.style.width = isOpen ? assistWidth : '';
+
       surface.style.minHeight = isOpen ? assistHeight : '';
+      surface.style.setProperty('max-height', isOpen ? assistHeight : '', isOpen ? 'important' : '');
+      surface.style.height = isOpen ? assistHeight : '';
     }
 
-    if (assistCloseWithX)
+    if (assistCloseWithX && !dialog?.hutTweakBackdropCssApplied)
     {
-      const backdrop = dialog?.shadowRoot?.querySelector('.mdc-dialog__scrim');
-      if (backdrop)
+      const shadowRoot = dialog?.shadowRoot;
+      if (shadowRoot)
       {
-        backdrop.style.pointerEvents = 'auto'; // Ensure it can receive events
-
-        backdrop.addEventListener('click', (e) => {
-          // Only prevent clicks if the backdrop itself was clicked
-          if (e.target === backdrop)
-          {
-            e.stopPropagation();
-            e.preventDefault();
-          }
-        });
+        let styleEl = shadowRoot.querySelector('style[data-hut-backdrop-block]');
+        if (!styleEl)
+        {
+          styleEl = document.createElement('style');
+          styleEl.setAttribute('data-hut-backdrop-block', 'true');
+          styleEl.textContent = `
+                dialog::backdrop {
+                  pointer-events: none !important;
+                }
+              `;
+          shadowRoot.appendChild(styleEl);
+          dialog.hutTweakBackdropCssApplied = true;
+        }
       }
     }
 
     if (backdropBlurEnable)
     {
-      const backdrop = dialog?.shadowRoot?.querySelector('.mdc-dialog__scrim');
-      if (!backdrop.hutTweakApplied)
+      const shadowRoot = dialog?.shadowRoot;
+      if (shadowRoot)
       {
-        backdrop.style.backdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;
-        backdrop.style.webkitBackdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;
-        backdrop.hutTweakApplied = true;
+        let styleEl = shadowRoot.querySelector('style[data-hut-backdrop-blur]');
+        if (!styleEl)
+        {
+          styleEl = document.createElement('style');
+          styleEl.setAttribute('data-hut-backdrop-blur', 'true');
+          styleEl.textContent = `
+                dialog::backdrop {
+                  backdrop-filter: blur(${backdropBlurAmount}) saturate(1.1) !important;
+                  -webkit-backdrop-filter: blur(${backdropBlurAmount}) saturate(1.1) !important;
+                }
+              `;
+          shadowRoot.appendChild(styleEl);
+          dialog.hutTweakBackdropBlurCssApplied = true;
+        }
       }
     }
   }
