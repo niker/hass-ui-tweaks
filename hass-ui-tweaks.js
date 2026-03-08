@@ -599,15 +599,50 @@
 
     const homeAssistant = document.querySelector('home-assistant');
     const moreInfoDialog = homeAssistant?.shadowRoot?.querySelector('ha-more-info-dialog');
-    const dialogOpen = moreInfoDialog?.shadowRoot?.querySelector('ha-dialog');
-    const backdrop = dialogOpen?.shadowRoot?.querySelector('.mdc-dialog__scrim');
-
-    if (!backdrop.hutTweakApplied)
+    const adaptiveDialog = moreInfoDialog?.shadowRoot?.querySelector('ha-adaptive-dialog');
+    const haDialog = adaptiveDialog?.shadowRoot?.querySelector('ha-dialog');
+    const waDialog = haDialog?.shadowRoot?.querySelector('wa-dialog');
+    const shadowRoot = waDialog?.shadowRoot;
+    if (shadowRoot && !waDialog.hutTweakBackdropBlurCssApplied)
     {
-      backdrop.style.backdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;
-      backdrop.style.webkitBackdropFilter = `blur(${backdropBlurAmount}) saturate(1.1)`;
-      backdrop.hutTweakApplied = true;
-    }    
+      let styleEl = shadowRoot.querySelector('style[data-hut-backdrop-blur]');
+      if (!styleEl)
+      {
+        styleEl = document.createElement('style');
+        styleEl.setAttribute('data-hut-backdrop-blur', 'true');
+        styleEl.textContent = `
+              dialog::backdrop {
+                backdrop-filter: blur(${backdropBlurAmount}) saturate(1.1) !important;
+                -webkit-backdrop-filter: blur(${backdropBlurAmount}) saturate(1.1) !important;
+              }
+            `;
+        shadowRoot.appendChild(styleEl);
+        waDialog.hutTweakBackdropBlurCssApplied = true;
+      }
+    }
+
+    const quickBar = homeAssistant?.shadowRoot?.querySelector('ha-quick-bar');
+    const adaptiveDialogQB = quickBar?.shadowRoot?.querySelector('ha-adaptive-dialog');
+    const haDialogQB = adaptiveDialogQB?.shadowRoot?.querySelector('ha-dialog');
+    const waDialogQB = haDialogQB?.shadowRoot?.querySelector('wa-dialog');
+    const shadowRootQB = waDialogQB?.shadowRoot;
+    if (shadowRootQB && !waDialogQB.hutTweakBackdropBlurCssApplied)
+    {
+      let styleElQB = shadowRootQB.querySelector('style[data-hut-backdrop-blur]');
+      if (!styleElQB)
+      {
+        styleElQB = document.createElement('style');
+        styleElQB.setAttribute('data-hut-backdrop-blur', 'true');
+        styleElQB.textContent = `
+              dialog::backdrop {
+                backdrop-filter: blur(${backdropBlurAmount}) saturate(1.1) !important;
+                -webkit-backdrop-filter: blur(${backdropBlurAmount}) saturate(1.1) !important;
+              }
+            `;
+        shadowRootQB.appendChild(styleElQB);
+        waDialogQB.hutTweakBackdropBlurCssApplied = true;
+      }
+    }
   }
   
   function applyAssistTweaks()
@@ -702,6 +737,8 @@
 
   // periodically watch for assist dialog being shown or closed
   setInterval(applyAssistTweaks(), 500);
+  // periodically apply blur tweaks for keyboard-opened dialogs like quick-bar
+  setInterval(applyBlurTweaks(), 500);
 
   // if we are on the right page, try to apply editor tweaks faster until it works;
   // then the update slows down to every 3 seconds to colorize newly added nodes
