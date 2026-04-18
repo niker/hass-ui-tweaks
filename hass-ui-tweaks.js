@@ -72,8 +72,9 @@
     const homeAssistant = document.querySelector('home-assistant');
     const voiceDialog = homeAssistant?.shadowRoot?.querySelector('ha-voice-command-dialog');
     const assistChat = voiceDialog?.shadowRoot?.querySelector('ha-assist-chat');
-    const textField = assistChat?.shadowRoot?.querySelector('ha-textfield');
-    const chatInput = textField?.shadowRoot?.querySelector('input');
+    const haInput = assistChat?.shadowRoot?.querySelector('ha-input');
+    const waInput = haInput?.shadowRoot?.querySelector('wa-input');
+    const chatInput = waInput?.shadowRoot?.querySelector('input');
 
     return !!chatInput && textField?.shadowRoot?.activeElement === chatInput;
   }
