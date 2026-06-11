@@ -657,7 +657,47 @@
       }
     }
   }
-  
+
+  function assistScrollToBottom()
+  {
+    const homeAssistant = document.querySelector('home-assistant');
+    const voiceDialog = homeAssistant?.shadowRoot?.querySelector('ha-voice-command-dialog');
+    const assistChat = voiceDialog?.shadowRoot?.querySelector('ha-assist-chat');
+
+    if (!assistChat?.shadowRoot)
+    {
+      return;
+    }
+
+    const scrollContainer = assistChat.shadowRoot.querySelector('#messages') ||
+        assistChat.shadowRoot.querySelector('.messages') ||
+        assistChat.shadowRoot.querySelector('div');
+
+    if (!scrollContainer)
+    {
+      return;
+    }
+
+    // Initialize scroll listener to track user intent
+    if (!scrollContainer._hutScrollListenerAttached)
+    {
+      scrollContainer.addEventListener('scroll', () => {
+        // If user is within 50px of bottom, consider it "auto-follow" mode
+        const isAtBottom = (scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight) < 50;
+        scrollContainer._hutManualScroll = !isAtBottom;
+      });
+      scrollContainer._hutScrollListenerAttached = true;
+    }
+
+    // Only auto-scroll if the user hasn't manually scrolled up
+    if (!scrollContainer._hutManualScroll)
+    {
+      requestAnimationFrame(() => {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      });
+    }
+  }
+
   function applyAssistTweaks()
   {
     return () => {
@@ -679,6 +719,11 @@
         allowDialogToUseMarkdown(isOpen);
         preventDialogPaste(isOpen);
         manageAssistShortcutsListener(isOpen);
+
+        if (isOpen)
+        {
+          assistScrollToBottom();
+        }
       }
       catch
       {
